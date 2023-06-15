@@ -126,5 +126,10 @@ if(${is_top_level_project})
                                /W3>)
 endif()
 
+option(CPPAST_TEMPLATE_FULL_ARGUMENTS_PARSING "Enable full argument parsing of template instantiation" ON)
+if(CPPAST_TEMPLATE_FULL_ARGUMENTS_PARSING)
+    target_compile_definitions(cppast PUBLIC CPPAST_TEMPLATE_FULL_ARGUMENTS_PARSING)
+endif(CPPAST_TEMPLATE_FULL_ARGUMENTS_PARSING)
+
 install(TARGETS cppast)
 install(DIRECTORY ../include/ DESTINATION include)

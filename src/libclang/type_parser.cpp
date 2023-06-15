@@ -501,8 +501,13 @@ CXCursor get_instantiation_template(const CXCursor& cur, const CXType& type,
     }
 }
 
+#ifndef CPPAST_TEMPLATE_FULL_ARGUMENTS_PARSING
 std::unique_ptr<cpp_type> try_parse_instantiation_type(const detail::parse_context&,
                                                        const CXCursor& cur, const CXType& type)
+#else
+std::unique_ptr<cpp_type> try_parse_instantiation_type(const detail::parse_context& ctx,
+                                                       const CXCursor& cur, const CXType& type)
+#endif
 {
     return make_leave_type(cur, type, [&](std::string&& spelling) -> std::unique_ptr<cpp_type> {
         auto ptr = spelling.c_str();
@@ -528,7 +533,21 @@ std::unique_ptr<cpp_type> try_parse_instantiation_type(const detail::parse_conte
         spelling.pop_back();
         while (!spelling.empty() && spelling.back() == ' ')
             spelling.pop_back();
-        builder.add_unexposed_arguments(ptr);
+
+        #ifndef CPPAST_TEMPLATE_FULL_ARGUMENTS_PARSING
+            builder.add_unexposed_arguments(ptr);
+        #else
+            auto decl  = clang_getTypeDeclaration(type);
+            auto count = clang_Type_getNumTemplateArguments(clang_getCursorType(decl));
+            for (unsigned int index = 0 ; static_cast<int>(index) < count ; index++) {
+                CXType argType = clang_Type_getTemplateArgumentAsType(type,index);
+                if (argType.kind != CXTypeKind::CXType_Invalid) {
+                    auto parsedType = parse_type_impl(ctx,templ,argType);
+                    cpp_template_argument cppastTmplArg(std::move(parsedType));
+                    builder.add_argument(std::move(cppastTmplArg));
+                }
+            }
+        #endif
 
         return builder.finish();
     });

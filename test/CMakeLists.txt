@@ -48,6 +48,11 @@ target_link_libraries(cppast_test PUBLIC cppast Catch2)
 target_compile_definitions(cppast_test PUBLIC CPPAST_INTEGRATION_FILE="${CMAKE_CURRENT_SOURCE_DIR}/integration.cpp"
                                               CPPAST_COMPILE_COMMANDS="${CMAKE_BINARY_DIR}")
 
+option(CPPAST_TEMPLATE_FULL_ARGUMENTS_PARSING "Enable full argument parsing of template instantiation" ON)
+if(CPPAST_TEMPLATE_FULL_ARGUMENTS_PARSING)
+    target_compile_definitions(cppast_test PUBLIC CPPAST_TEMPLATE_FULL_ARGUMENTS_PARSING)
+endif(CPPAST_TEMPLATE_FULL_ARGUMENTS_PARSING)
+
 add_test(NAME unit_test COMMAND cppast_test "~[integration]")
 add_test(NAME integration_test COMMAND cppast_test "[integration]")
 
